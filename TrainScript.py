@@ -1,6 +1,7 @@
 import keras
 import keras_radam
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from keras.models import Sequential
@@ -16,7 +17,7 @@ batch_size = 128
 learning_rate = 0.001
 optimizers_names = [
     'Adam',
-    # 'NAdam',
+    'NAdam',
     'RMSprop',
     # 'RAdam'
 ]
@@ -25,6 +26,8 @@ optimizers_names = [
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x = np.concatenate((x_train, x_test), axis=0)[:dataset_size]
 y = np.concatenate((y_train, y_test), axis=0)[:dataset_size]
+
+# todo: implement k-fold cross validation
 
 # Reshaping the array to 4-dims so that it can work with the Keras API
 x = x.reshape(x.shape[0], 28, 28, 1).astype('float32')
@@ -58,10 +61,17 @@ for optimizer_name in optimizers_names:
 
     # Compiling and Fitting the Model
     model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model.save('%s.h5' % optimizer_name)
     history = model.fit(x=x, y=y, validation_split=validation_split, epochs=epochs, batch_size=batch_size,
                         verbose=2, shuffle=False)
     histories[optimizer_name] = history
+
+    # save model for future training or testing
+    model.save('saves\\%s.h5' % optimizer_name)
+
+    # save training to csv
+    df = pd.DataFrame(history.history)
+    df.index.name = 'epoch'
+    df.to_csv('saves\\%s train.csv' % optimizer_name)
 
     # # plot for this optimizer
     # for metric in metrics:
@@ -92,4 +102,5 @@ for metric in metrics:
     plt.xticks(range(1, epochs + 1))
     plt.legend()
     # plt.grid()
+    plt.savefig('saves\\%s comparison.png' % metric)
     plt.show()
