@@ -8,16 +8,21 @@ import matplotlib.pyplot as plt
 import random
 from sklearn.model_selection import KFold
 import os
+import time
+
+
+
+
 # ----------------- #
 # global parameters #
 # ----------------- #
 
 rel_path = "C:\\Users\\guy schlesinger\\PycharmProjects\\CNNOptimizersProject\\results\\saves"
-dataset_size = 5000
-epochs = 10
+dataset_size = 10000
+epochs = 15
 batch_size = 128
 learning_rate = 0.001
-n_folds = 10
+n_folds = 5
 validation_split = 1/n_folds
 optimizers_names = [
     'Adam',
@@ -33,7 +38,7 @@ optimizers = {
 }
 histories = {}
 metrics = ['accuracy', 'loss']
-
+run_time = {}
 # For each data set
 for dataset_name in dataset_dic:
 
@@ -66,6 +71,7 @@ for dataset_name in dataset_dic:
         print('\noptimizer: %s' % optimizer_name)
         fold = 0
         # For each fold
+        start = time.time()
         for train, test in kf.split(x):
             fold = fold +1
             print("fold %d" % fold)
@@ -110,13 +116,19 @@ for dataset_name in dataset_dic:
             print('prediction = %d (should be %d)' % (pred.argmax(), y_test[image_index]))
             #plt.imshow(x_test[image_index].reshape(28, 28),cmap='Greys')
             #plt.show()
+        end = time.time()
+        run_time["%s_%s" % (dataset_name,optimizer_name)] = end - start
 
 # plot for all optimizers and datasets
 for dataset_name in dataset_dic:
+    first = True
     for metric in metrics:
         for optimizer_name in optimizers_names:
+            if first:
+                rt = run_time["%s_%s" % (dataset_name, optimizer_name)]
+                print("\nThe run time for %s optimizer in %s dataset is %s and average (per folds and epoch) - %s " % (optimizer_name, dataset_name, rt, rt / (n_folds*epochs)))
             metric_res = [0]*epochs
-
+            rt = run_time["%s_%s" % (dataset_name,optimizer_name)]
             # Averaging the results over all folds
             for fold in range(1,n_folds+1):
                 history = histories["%s_%s_%d" %(dataset_name,optimizer_name,fold)]
@@ -126,6 +138,7 @@ for dataset_name in dataset_dic:
                 metric_res[ep] = metric_res[ep] / n_folds
 
             plt.plot(range(1, epochs + 1), metric_res, label=optimizer_name)
+        first = False
         plt.title('%s comparison in %s dataset' % (metric,dataset_name))
         plt.ylabel(metric)
         plt.xlabel('epoch')
