@@ -18,8 +18,8 @@ import time
 # ----------------- #
 
 rel_path = "C:\\Users\\guy schlesinger\\PycharmProjects\\CNNOptimizersProject\\results\\saves"
-dataset_size = 10000
-epochs = 15
+dataset_size = 5000
+epochs = 60
 batch_size = 128
 learning_rate = 0.001
 n_folds = 5
@@ -107,7 +107,7 @@ for dataset_name in dataset_dic:
             # save training to csv
             df = pd.DataFrame(history.history)
             df.index.name = 'epoch'
-            df.to_csv('%s\\%s\\%s_%d.h5' % (rel_path,dataset_name,optimizer_name,fold))
+            df.to_csv('%s\\%s\\%s_%d.csv' % (rel_path,dataset_name,optimizer_name,fold))
 
 
             # Testing model on a specific instance
